@@ -22,11 +22,8 @@ class DossierFactory extends Factory
      */
     public function definition(): array
     {
-        // Récupérer la France par défaut (suppose que les seeders ont été exécutés)
-        $france = Pays::where('code', 'FR')->first();
-
         return [
-            'pays_id' => $france ? $france->id : 1, // Fallback sur ID 1 si France non trouvée
+            'pays_id' => Pays::factory(),
             'email' => null,
             'status' => DossierStatus::DRAFT,
             'download_token' => Str::random(32), // Sera aussi généré par le boot() du model
