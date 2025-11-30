@@ -31,3 +31,4 @@ use App\Http\Controllers\DossierController;
 // Routes publiques pour le flow DossierAppart
 Route::post('/dossiers', [DossierController::class, 'store'])->name('dossiers.store');
 Route::get('/dossiers/{dossier}/upload', [DossierController::class, 'upload'])->name('dossiers.upload');
+Route::post('/dossiers/{dossier}/documents', [DossierController::class, 'uploadDocument'])->name('dossiers.uploadDocument');
