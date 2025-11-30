@@ -24,4 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
+use App\Http\Controllers\DossierController;
+
+// Routes publiques pour le flow DossierAppart
+Route::post('/dossiers', [DossierController::class, 'store'])->name('dossiers.store');
+Route::get('/dossiers/{dossier}/upload', [DossierController::class, 'upload'])->name('dossiers.upload');
