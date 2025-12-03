@@ -5,14 +5,14 @@ namespace Tests\Feature;
 use App\Models\Dossier;
 use App\Models\Pays;
 use App\Models\TypeDocumentPays;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UploadDocumentTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     /**
      * Configuration avant chaque test.
@@ -20,7 +20,7 @@ class UploadDocumentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(); // On peuple la base (Pays, Types)
+        // $this->seed(); // On peuple la base (Pays, Types)
 
         // Utiliser un disque de stockage fake pour les tests
         Storage::fake('local');
@@ -47,7 +47,7 @@ class UploadDocumentTest extends TestCase
         ]);
 
         // 5. Vérifier qu'un document a été créé en base
-        $this->assertDatabaseCount('documents', 1);
+        $this->assertEquals(1, $dossier->documents()->count());
         $this->assertDatabaseHas('documents', [
             'dossier_id' => $dossier->id,
             'type_document_pays_id' => $typeDocument->id,
@@ -56,7 +56,8 @@ class UploadDocumentTest extends TestCase
 
         // 6. Vérifier que le fichier a été stocké
         $document = $dossier->documents()->first();
-        Storage::disk('local')->assertExists($document->storage_path);
+        // utiliser exists() et l'assertion PHPUnit pour éviter l'erreur "Undefined method"
+        $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
 
         // 7. Vérifier la réponse
         $response->assertStatus(201);
@@ -82,11 +83,11 @@ class UploadDocumentTest extends TestCase
         ]);
 
         // 4. Vérifier qu'un document a été créé
-        $this->assertDatabaseCount('documents', 1);
-
+        $this->assertEquals(1, $dossier->documents()->count());
         // 5. Vérifier que le fichier a été stocké
         $document = $dossier->documents()->first();
-        Storage::disk('local')->assertExists($document->storage_path);
+        // utiliser exists() et l'assertion PHPUnit pour éviter l'erreur "Undefined method"
+        $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
 
         $response->assertStatus(201);
     }
@@ -114,7 +115,7 @@ class UploadDocumentTest extends TestCase
         $response->assertSessionHasErrors('file');
 
         // 5. Vérifier qu'aucun document n'a été créé
-        $this->assertDatabaseCount('documents', 0);
+        $this->assertEquals(0, $dossier->documents()->count());
     }
 
     public function test_rejects_invalid_file_types(): void
@@ -140,6 +141,6 @@ class UploadDocumentTest extends TestCase
         $response->assertSessionHasErrors('file');
 
         // 5. Vérifier qu'aucun document n'a été créé
-        $this->assertDatabaseCount('documents', 0);
+        $this->assertEquals(0, $dossier->documents()->count());
     }
 }

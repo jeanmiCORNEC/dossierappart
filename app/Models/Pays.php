@@ -28,7 +28,10 @@ class Pays extends Model
     /**
      * Types de documents pour ce pays
      */
-    public function typesDocuments(): HasMany
+    /**
+     * Types de documents pour ce pays
+     */
+    public function typesDocumentsPays(): HasMany
     {
         return $this->hasMany(TypeDocumentPays::class);
     }

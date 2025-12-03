@@ -36,7 +36,7 @@ class Document extends Model
     /**
      * Le type de document
      */
-    public function typeDocument(): BelongsTo
+    public function typeDocumentPays(): BelongsTo
     {
         return $this->belongsTo(TypeDocumentPays::class, 'type_document_pays_id');
     }
