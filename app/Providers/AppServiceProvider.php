@@ -21,5 +21,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Limiter à 2 jobs simultanés pour le traitement PDF
+        \Illuminate\Support\Facades\RateLimiter::for('pdf-processing', function ($job) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(2);
+        });
     }
 }
