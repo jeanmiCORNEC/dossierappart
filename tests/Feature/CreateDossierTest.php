@@ -24,11 +24,10 @@ class CreateDossierTest extends TestCase
     public function test_guest_can_create_dossier(): void
     {
         // 1. Créer les données de test
-        $france = Pays::create([
-            'code' => 'FR',
-            'nom' => 'France',
-            'indicatif' => '+33',
-        ]);
+        $france = Pays::firstOrCreate(
+            ['code' => 'FR'],
+            ['nom' => 'France', 'indicatif' => '+33']
+        );
 
         $initialCount = Dossier::count();
 
