@@ -23,8 +23,13 @@ class CreateDossierTest extends TestCase
 
     public function test_guest_can_create_dossier(): void
     {
-        // 1. Récupérer la France
-        $france = Pays::where('code', 'FR')->first();
+        // 1. Créer les données de test
+        $france = Pays::create([
+            'code' => 'FR',
+            'nom' => 'France',
+            'indicatif' => '+33',
+        ]);
+
         $initialCount = Dossier::count();
 
         // 2. Faire la requête POST pour créer un dossier
@@ -35,7 +40,7 @@ class CreateDossierTest extends TestCase
         // 3. Vérifier qu'un dossier a été créé
         $this->assertDatabaseCount('dossiers', $initialCount + 1);
 
-        $dossier = Dossier::latest('id')->first();
+        $dossier = Dossier::latest()->first();
 
         // 4. Vérifier les attributs du dossier
         $this->assertEquals($france->id, $dossier->pays_id);

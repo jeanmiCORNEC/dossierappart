@@ -28,25 +28,32 @@ class UploadDocumentTest extends TestCase
 
     public function test_can_upload_pdf_to_dossier(): void
     {
-        // 1. Créer un dossier
-        $france = Pays::where('code', 'FR')->first();
+        // 1. Créer les données de test
+        $france = Pays::create([
+            'code' => 'FR',
+            'nom' => 'France',
+            'indicatif' => '+33',
+        ]);
+
+        $typeDocument = TypeDocumentPays::create([
+            'pays_id' => $france->id,
+            'code' => 'identite',
+            'libelle' => 'Pièce d\'identité',
+            'ordre' => 1,
+        ]);
+
         $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
 
-        // 2. Récupérer un type de document (identité par exemple)
-        $typeDocument = TypeDocumentPays::where('pays_id', $france->id)
-            ->where('code', 'identite')
-            ->first();
-
-        // 3. Créer un faux fichier PDF
+        // 2. Créer un faux fichier PDF
         $file = UploadedFile::fake()->create('carte-identite.pdf', 2000); // 2 MB
 
-        // 4. Uploader le fichier
+        // 3. Uploader le fichier
         $response = $this->post("/dossiers/{$dossier->id}/documents", [
             'type_document_pays_id' => $typeDocument->id,
             'file' => $file,
         ]);
 
-        // 5. Vérifier qu'un document a été créé en base
+        // 4. Vérifier qu'un document a été créé en base
         $this->assertEquals(1, $dossier->documents()->count());
         $this->assertDatabaseHas('documents', [
             'dossier_id' => $dossier->id,
@@ -54,24 +61,33 @@ class UploadDocumentTest extends TestCase
             'original_filename' => 'carte-identite.pdf',
         ]);
 
-        // 6. Vérifier que le fichier a été stocké
+        // 5. Vérifier que le fichier a été stocké
         $document = $dossier->documents()->first();
         // utiliser exists() et l'assertion PHPUnit pour éviter l'erreur "Undefined method"
         $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
 
-        // 7. Vérifier la réponse
-        $response->assertStatus(201);
+        // 6. Vérifier la réponse (redirect back with success)
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Document ajouté avec succès');
     }
 
     public function test_can_upload_image_to_dossier(): void
     {
-        // 1. Créer un dossier
-        $france = Pays::where('code', 'FR')->first();
-        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
+        // 1. Créer les données de test
+        $france = Pays::create([
+            'code' => 'FR',
+            'nom' => 'France',
+            'indicatif' => '+33',
+        ]);
 
-        $typeDocument = TypeDocumentPays::where('pays_id', $france->id)
-            ->where('code', 'identite')
-            ->first();
+        $typeDocument = TypeDocumentPays::create([
+            'pays_id' => $france->id,
+            'code' => 'identite',
+            'libelle' => 'Pièce d\'identité',
+            'ordre' => 1,
+        ]);
+
+        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
 
         // 2. Créer une fausse image JPG
         $file = UploadedFile::fake()->image('photo.jpg')->size(3000); // 3 MB
@@ -89,18 +105,27 @@ class UploadDocumentTest extends TestCase
         // utiliser exists() et l'assertion PHPUnit pour éviter l'erreur "Undefined method"
         $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
 
-        $response->assertStatus(201);
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Document ajouté avec succès');
     }
 
     public function test_rejects_files_over_10mb(): void
     {
-        // 1. Créer un dossier
-        $france = Pays::where('code', 'FR')->first();
-        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
+        // 1. Créer les données de test
+        $france = Pays::create([
+            'code' => 'FR',
+            'nom' => 'France',
+            'indicatif' => '+33',
+        ]);
 
-        $typeDocument = TypeDocumentPays::where('pays_id', $france->id)
-            ->where('code', 'identite')
-            ->first();
+        $typeDocument = TypeDocumentPays::create([
+            'pays_id' => $france->id,
+            'code' => 'identite',
+            'libelle' => 'Pièce d\'identité',
+            'ordre' => 1,
+        ]);
+
+        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
 
         // 2. Créer un fichier de 11 MB (> 10 MB)
         $file = UploadedFile::fake()->create('gros-fichier.pdf', 11000); // 11 MB
@@ -120,13 +145,21 @@ class UploadDocumentTest extends TestCase
 
     public function test_rejects_invalid_file_types(): void
     {
-        // 1. Créer un dossier
-        $france = Pays::where('code', 'FR')->first();
-        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
+        // 1. Créer les données de test
+        $france = Pays::create([
+            'code' => 'FR',
+            'nom' => 'France',
+            'indicatif' => '+33',
+        ]);
 
-        $typeDocument = TypeDocumentPays::where('pays_id', $france->id)
-            ->where('code', 'identite')
-            ->first();
+        $typeDocument = TypeDocumentPays::create([
+            'pays_id' => $france->id,
+            'code' => 'identite',
+            'libelle' => 'Pièce d\'identité',
+            'ordre' => 1,
+        ]);
+
+        $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
 
         // 2. Créer un fichier .exe (type interdit)
         $file = UploadedFile::fake()->create('virus.exe', 100);
