@@ -22,18 +22,11 @@ class UploadDocumentTest extends TestCase
 
     public function test_can_upload_pdf_to_dossier(): void
     {
-        $france = Pays::firstOrCreate(
-            ['code' => 'FR'],
-            ['nom' => 'France', 'indicatif' => '+33']
+        $france = Pays::firstOrCreate(['code' => 'FR'], ['nom' => 'France', 'indicatif' => '+33']);
+        $typeDocument = TypeDocumentPays::firstOrCreate(
+            ['pays_id' => $france->id, 'code' => 'identite'],
+            ['libelle' => 'Pièce d\'identité', 'ordre' => 1]
         );
-
-        $typeDocument = TypeDocumentPays::create([
-            'pays_id' => $france->id,
-            'code' => 'identite',
-            'libelle' => 'Pièce d\'identité',
-            'ordre' => 1,
-        ]);
-
         $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
         $file = UploadedFile::fake()->create('carte-identite.pdf', 2000);
 
@@ -48,7 +41,6 @@ class UploadDocumentTest extends TestCase
             'type_document_pays_id' => $typeDocument->id,
             'original_filename' => 'carte-identite.pdf',
         ]);
-
         $document = $dossier->documents()->first();
         $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
         $response->assertRedirect();
@@ -57,18 +49,11 @@ class UploadDocumentTest extends TestCase
 
     public function test_can_upload_image_to_dossier(): void
     {
-        $france = Pays::firstOrCreate(
-            ['code' => 'FR'],
-            ['nom' => 'France', 'indicatif' => '+33']
+        $france = Pays::firstOrCreate(['code' => 'FR'], ['nom' => 'France', 'indicatif' => '+33']);
+        $typeDocument = TypeDocumentPays::firstOrCreate(
+            ['pays_id' => $france->id, 'code' => 'identite'],
+            ['libelle' => 'Pièce d\'identité', 'ordre' => 1]
         );
-
-        $typeDocument = TypeDocumentPays::create([
-            'pays_id' => $france->id,
-            'code' => 'identite',
-            'libelle' => 'Pièce d\'identité',
-            'ordre' => 1,
-        ]);
-
         $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
         $file = UploadedFile::fake()->image('photo.jpg')->size(3000);
 
@@ -86,18 +71,11 @@ class UploadDocumentTest extends TestCase
 
     public function test_rejects_files_over_10mb(): void
     {
-        $france = Pays::firstOrCreate(
-            ['code' => 'FR'],
-            ['nom' => 'France', 'indicatif' => '+33']
+        $france = Pays::firstOrCreate(['code' => 'FR'], ['nom' => 'France', 'indicatif' => '+33']);
+        $typeDocument = TypeDocumentPays::firstOrCreate(
+            ['pays_id' => $france->id, 'code' => 'identite'],
+            ['libelle' => 'Pièce d\'identité', 'ordre' => 1]
         );
-
-        $typeDocument = TypeDocumentPays::create([
-            'pays_id' => $france->id,
-            'code' => 'identite',
-            'libelle' => 'Pièce d\'identité',
-            'ordre' => 1,
-        ]);
-
         $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
         $file = UploadedFile::fake()->create('gros-fichier.pdf', 11000);
 
@@ -112,18 +90,11 @@ class UploadDocumentTest extends TestCase
 
     public function test_rejects_invalid_file_types(): void
     {
-        $france = Pays::firstOrCreate(
-            ['code' => 'FR'],
-            ['nom' => 'France', 'indicatif' => '+33']
+        $france = Pays::firstOrCreate(['code' => 'FR'], ['nom' => 'France', 'indicatif' => '+33']);
+        $typeDocument = TypeDocumentPays::firstOrCreate(
+            ['pays_id' => $france->id, 'code' => 'identite'],
+            ['libelle' => 'Pièce d\'identité', 'ordre' => 1]
         );
-
-        $typeDocument = TypeDocumentPays::create([
-            'pays_id' => $france->id,
-            'code' => 'identite',
-            'libelle' => 'Pièce d\'identité',
-            'ordre' => 1,
-        ]);
-
         $dossier = Dossier::factory()->create(['pays_id' => $france->id]);
         $file = UploadedFile::fake()->create('virus.exe', 100);
 
