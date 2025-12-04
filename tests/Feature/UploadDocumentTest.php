@@ -44,7 +44,9 @@ class UploadDocumentTest extends TestCase
         $document = $dossier->documents()->first();
         $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
         $response->assertRedirect();
-        $response->assertSessionHas('success', 'Document ajouté avec succès');
+        
+        // CORRECTION ICI : "Document ajouté." au lieu de "Document ajouté avec succès"
+        $response->assertSessionHas('success', 'Document ajouté.');
     }
 
     public function test_can_upload_image_to_dossier(): void
@@ -66,7 +68,9 @@ class UploadDocumentTest extends TestCase
         $document = $dossier->documents()->first();
         $this->assertTrue(Storage::disk('local')->exists($document->storage_path));
         $response->assertRedirect();
-        $response->assertSessionHas('success', 'Document ajouté avec succès');
+
+        // CORRECTION ICI EGALEMENT
+        $response->assertSessionHas('success', 'Document ajouté.');
     }
 
     public function test_rejects_files_over_10mb(): void

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use setasign\Fpdi\Fpdi;
+use Illuminate\Support\FacadesLog;
 use Illuminate\Support\Facades\Log;
 
 class PdfMergerService
@@ -18,23 +19,23 @@ class PdfMergerService
         $allPdfs = array_merge([$sommairePath], $documentPaths);
         $tempFilesToDelete = [];
 
-        \Log::info("[PdfMerger] Starting merge with " . count($allPdfs) . " PDFs");
-        \Log::info("[PdfMerger] Sommaire: {$sommairePath}");
+        Log::info("[PdfMerger] Starting merge with " . count($allPdfs) . " PDFs");
+        Log::info("[PdfMerger] Sommaire: {$sommairePath}");
         foreach ($documentPaths as $i => $path) {
-            \Log::info("[PdfMerger] Doc {$i}: {$path} exists=" . (file_exists($path) ? 'YES' : 'NO'));
+            Log::info("[PdfMerger] Doc {$i}: {$path} exists=" . (file_exists($path) ? 'YES' : 'NO'));
         }
 
         foreach ($allPdfs as $index => $pdfPath) {
             if (!file_exists($pdfPath)) {
-                \Log::warning("[PdfMerger] File not found: {$pdfPath}");
+                Log::warning("[PdfMerger] File not found: {$pdfPath}");
                 continue;
             }
 
-            \Log::info("[PdfMerger] Processing PDF #{$index}: {$pdfPath}");
+            Log::info("[PdfMerger] Processing PDF #{$index}: {$pdfPath}");
 
             try {
                 $pageCount = $pdf->setSourceFile($pdfPath);
-                \Log::info("[PdfMerger] PDF #{$index} has {$pageCount} pages");
+                Log::info("[PdfMerger] PDF #{$index} has {$pageCount} pages");
 
                 for ($i = 1; $i <= $pageCount; $i++) {
                     $tplId = $pdf->importPage($i);
@@ -47,10 +48,10 @@ class PdfMergerService
                     $pdf->useTemplate($tplId);
                 }
 
-                \Log::info("[PdfMerger] Successfully merged PDF #{$index}");
+                Log::info("[PdfMerger] Successfully merged PDF #{$index}");
             } catch (\Exception $e) {
-                \Log::error("Erreur fusion PDF {$pdfPath}: " . $e->getMessage());
-                \Log::error("Stack trace: " . $e->getTraceAsString());
+                Log::error("Erreur fusion PDF {$pdfPath}: " . $e->getMessage());
+                Log::error("Stack trace: " . $e->getTraceAsString());
                 // On continue avec les autres fichiers
             }
 
@@ -70,9 +71,9 @@ class PdfMergerService
 
         try {
             $pdf->Output('F', $outputPath);
-            \Log::info("[PdfMerger] Final PDF generated at: {$outputPath}");
+            Log::info("[PdfMerger] Final PDF generated at: {$outputPath}");
         } catch (\Exception $e) {
-            \Log::error("[PdfMerger] Error generating final PDF: " . $e->getMessage());
+            Log::error("[PdfMerger] Error generating final PDF: " . $e->getMessage());
             throw $e;
         }
 
@@ -80,7 +81,7 @@ class PdfMergerService
         foreach ($tempFilesToDelete as $tempFile) {
             if (file_exists($tempFile)) {
                 @unlink($tempFile);
-                \Log::info("[PdfMerger] Cleaned temp file: {$tempFile}");
+                Log::info("[PdfMerger] Cleaned temp file: {$tempFile}");
             }
         }
 
