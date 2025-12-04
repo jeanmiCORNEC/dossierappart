@@ -21,12 +21,12 @@ class PaysSeeder extends Seeder
             [
                 'code' => 'BE',
                 'nom' => 'Belgique',
-                'actif' => false, // Désactivé pour le MVP
+                'actif' => true, // Activé pour l'ouverture internationale
             ],
             [
                 'code' => 'CH',
                 'nom' => 'Suisse',
-                'actif' => false, // Désactivé pour le MVP
+                'actif' => true, // Activé pour l'ouverture internationale
             ],
         ];
 
@@ -34,6 +34,6 @@ class PaysSeeder extends Seeder
             Pays::create($p);
         }
 
-        $this->command->info('✅ 3 pays créés (FR actif, BE/CH désactivés)');
+        $this->command->info('✅ 3 pays créés (FR, BE, CH tous actifs)');
     }
 }
