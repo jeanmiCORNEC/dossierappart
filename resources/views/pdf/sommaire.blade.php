@@ -5,7 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <style>
         body {
-            font-family: sans-serif;
+            /* CORRECTION ICI : On utilise DejaVu Sans pour le support UTF-8 */
+            font-family: 'DejaVu Sans', sans-serif;
             color: #333;
             line-height: 1.6;
         }
@@ -70,11 +71,13 @@
             position: relative;
         }
 
+        /* Le point (bullet) doit aussi être géré par la police */
         li:before {
             content: "•";
             color: #4F46E5;
             position: absolute;
             left: 0;
+            font-family: 'DejaVu Sans', sans-serif;
         }
 
         .footer {
@@ -118,10 +121,6 @@
             {{ $docs->first()->typeDocumentPays->libelle }}
             <span style="font-size: 14px; font-weight: normal; color: #6B7280; float: right;">
                 {{ $docs->count() }} document{{ $docs->count() > 1 ? 's' : '' }}
-                @if(isset($pageNumbers[$typeId]))
-                <span style="margin-left: 10px; color: #4F46E5; font-weight: 600;">Page {{ $pageNumbers[$typeId] }}</span>
-                @endif
-            </span>
             </span>
         </div>
         <ul>

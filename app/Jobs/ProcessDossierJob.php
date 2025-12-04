@@ -13,7 +13,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ProcessDossierJob implements ShouldQueue
 {
@@ -74,8 +74,8 @@ class ProcessDossierJob implements ShouldQueue
             // TODO: Envoyer email de notification
 
         } catch (\Exception $e) {
-            \Log::error("Erreur traitement dossier {$this->dossier->id}: " . $e->getMessage());
-            \Log::error($e->getTraceAsString());
+            Log::error("Erreur traitement dossier {$this->dossier->id}: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
 
             $this->dossier->update(['status' => DossierStatus::FAILED]);
 
