@@ -27,7 +27,7 @@ class PdfSanitizerService
         $this->masterWatermarkPath = storage_path('app/watermark_master.png');
 
         // Cache Optimisé pour le tuilage (sera généré automatiquement)
-        $this->optimizedWatermarkPath = storage_path('app/temp/watermark_opt_600.png');
+        $this->optimizedWatermarkPath = storage_path('app/watermark_opt_600.png');
 
         $this->tempPath = storage_path('app/temp');
 
