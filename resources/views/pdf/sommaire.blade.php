@@ -106,7 +106,7 @@
 
 <body>
     <div class="header">
-        <div class="logo">DossierAppart</div>
+        <div class="logo">dossierappart</div>
         <h1>Dossier de Location - {{ $dossier->pays->nom }}</h1>
         <div class="meta">
             Généré le {{ $generatedAt->format('d/m/Y à H:i') }}

@@ -84,7 +84,7 @@ defineProps<{
         <!-- Footer -->
         <footer class="py-8 text-center text-sm text-gray-500 dark:text-gray-400 mt-20">
             <p>&copy; {{ new Date().getFullYear() }} DossierAppart. Tous droits réservés.</p>
-            <p class="mt-2">Vos données sont supprimées automatiquement après 30 jours.</p>
+            <p class="mt-2">Vos données sont supprimées automatiquement après 24 heures.</p>
         </footer>
     </div>
 </template>
