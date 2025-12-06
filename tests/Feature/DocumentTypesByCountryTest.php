@@ -4,13 +4,22 @@ namespace Tests\Feature;
 
 use App\Models\Pays;
 use App\Models\TypeDocumentPays;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class DocumentTypesByCountryTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
+    /**
+     * Configuration avant chaque test.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed();
+    }
+    
     /**
      * Types de documents communs à tous les pays
      */

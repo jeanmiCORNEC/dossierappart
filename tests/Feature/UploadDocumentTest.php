@@ -5,18 +5,22 @@ namespace Tests\Feature;
 use App\Models\Dossier;
 use App\Models\Pays;
 use App\Models\TypeDocumentPays;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UploadDocumentTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
+    /**
+     * Configuration avant chaque test.
+     */
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
         Storage::fake('local');
     }
 
