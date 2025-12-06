@@ -5,12 +5,12 @@ namespace Tests\Feature;
 use App\Enums\DossierStatus;
 use App\Models\Dossier;
 use App\Models\Pays;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CreateDossierTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     /**
      * Configuration avant chaque test.
@@ -18,7 +18,7 @@ class CreateDossierTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // $this->seed(); // Pas de seed car on utilise la base locale existante
+        $this->seed();
     }
 
     public function test_guest_can_create_dossier(): void

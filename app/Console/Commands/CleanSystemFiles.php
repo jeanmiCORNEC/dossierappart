@@ -21,18 +21,21 @@ class CleanSystemFiles extends Command
             $files = File::allFiles($tempPath);
             
             foreach ($files as $file) {
-                // On récupère le timestamp et on le convertit en Carbon
-                $fileDate = Carbon::createFromTimestamp(File::lastModified($file));
+                // Utiliser le chemin réel du fichier pour être sûr
+                $filePath = $file->getRealPath();
 
-                // Si le fichier a plus de 24h
-                if (now()->diffInHours($fileDate) > 24) {
+                // On récupère le timestamp et on le convertit en Carbon
+                $fileDate = Carbon::createFromTimestamp(File::lastModified($filePath));
+
+                // Si le fichier a plus de 24h (utiliser la date du fichier comme base)
+                if ($fileDate->diffInHours(now()) > 24) {
                     
                     // Protection du cache watermark
                     if (str_contains($file->getFilename(), 'watermark_opt')) {
                         continue;
                     }
                     
-                    File::delete($file);
+                    File::delete($filePath);
                     $filesDeleted++;
                 }
             }
@@ -50,8 +53,8 @@ class CleanSystemFiles extends Command
                     // Conversion timestamp -> Carbon
                     $fileDate = Carbon::createFromTimestamp(File::lastModified($file));
 
-                    // Si plus vieux que 30 jours
-                    if (now()->diffInDays($fileDate) > 30) {
+                    // Si plus vieux que 30 jours (utiliser la date du fichier comme base)
+                    if ($fileDate->diffInDays(now()) > 30) {
                         File::delete($file);
                         $logsDeleted++;
                     }

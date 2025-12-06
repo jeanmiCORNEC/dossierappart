@@ -38,8 +38,9 @@ class CleanExpiredDossiers extends Command
                     Storage::disk('local')->deleteDirectory("dossiers/{$dossier->id}");
                 }
 
-                // Suppression BDD (La cascade supprimera les documents liés)
-                $dossier->delete();
+                // Suppression BDD (suppression définitive pour les tests et nettoyage physique)
+                // On utilise forceDelete() pour effacer la ligne (le modèle utilise SoftDeletes)
+                $dossier->forceDelete();
                 $count++;
             } catch (\Exception $e) {
                 Log::error("Erreur suppression dossier {$dossier->id} : " . $e->getMessage());

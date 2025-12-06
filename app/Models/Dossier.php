@@ -24,6 +24,7 @@ class Dossier extends Model
         'download_token',
         'stripe_payment_id',
         'expires_at',
+        'created_at',
     ];
 
     protected function casts(): array
