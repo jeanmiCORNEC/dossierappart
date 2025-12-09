@@ -33,6 +33,7 @@ interface Props {
   };
   documents: Document[];
   documentTypes: DocumentType[];
+  paymentSuccess?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -43,8 +44,7 @@ const selectedTypeId = ref<number | null>(null);
 const showModal = ref(false);
 const dropZoneRef = ref<InstanceType<typeof DropZone> | null>(null);
 
-// NOUVEAU : État de succès final (remplace le polling)
-const isSuccess = ref(false);
+const isSuccess = ref(props.paymentSuccess === true); 
 
 const form = useForm({
   file: null as File | null,
@@ -91,17 +91,8 @@ const handleConfirmPayment = () => {
   // 1. Fermer la modale
   showModal.value = false;
 
-  // 2. Soumettre au backend (Passage en "Paid/Processing")
-  router.post(route('dossiers.submit', props.dossier.id), {}, {
-    onSuccess: () => {
-      // 3. UX : Feedback immédiat sans attendre le PDF
-      isSuccess.value = true;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    onError: () => {
-      alert('Une erreur est survenue lors de la soumission du dossier.');
-    }
-  });
+  // 2. On appelle le contrôleur Stripe
+  router.post(route('stripe.checkout', props.dossier.id));
 };
 </script>
 

@@ -25,6 +25,8 @@ class Dossier extends Model
         'stripe_payment_id',
         'expires_at',
         'created_at',
+        'final_pdf_path',
+        'processed_at'
     ];
 
     protected function casts(): array

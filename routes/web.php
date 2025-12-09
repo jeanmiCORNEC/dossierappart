@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\Pays;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DossierController;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\DossierController;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -20,3 +22,11 @@ Route::delete('/dossiers/{dossier}/documents/{document}', [DossierController::cl
 Route::post('/dossiers/{dossier}/submit', [DossierController::class, 'submit'])->name('dossiers.submit');
 Route::get('/dossiers/{dossier}/status', [DossierController::class, 'status'])->name('dossiers.status');
 Route::get('/dossiers/{dossier}/download', [DossierController::class, 'download'])->name('dossiers.download');
+// 1. Lancer le paiement
+Route::post('/dossiers/{dossier}/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
+
+// 2. Retour succès
+Route::get('/dossiers/{dossier}/payment-success', [StripeController::class, 'success'])->name('stripe.success');
+
+// 3. Webhook (Appelé par Stripe, pas par l'utilisateur)
+Route::post('/stripe/webhook', [WebhookController::class, 'handle'])->name('stripe.webhook');
