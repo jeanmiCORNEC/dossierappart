@@ -81,6 +81,11 @@ class ProcessDossierJob implements ShouldQueue
             if ($this->dossier->email) {
                 Mail::to($this->dossier->email)->send(new DossierCompleted($this->dossier));
                 Log::info("📧 EMAIL SENT : Dossier {$this->dossier->id} envoyé à {$this->dossier->email}");
+                // --- LOG JURIDIQUE : PREUVE DE LIVRAISON ---
+                $this->dossier->logs()->create([
+                    'action_type' => 'email_sent',
+                    'details' => "Lien de téléchargement envoyé à : " . $this->dossier->email
+                ]);
             } else {
                 Log::warning("⚠️ EMAIL MISSING : Pas d'email pour le dossier {$this->dossier->id}, impossible d'envoyer.");
             }

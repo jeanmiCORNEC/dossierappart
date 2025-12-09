@@ -12,11 +12,19 @@ use Inertia\Inertia;
 
 class StripeController extends Controller
 {
-    public function checkout(Dossier $dossier, StripeClient $stripe)
+    public function checkout(Dossier $dossier, StripeClient $stripe, Request $request)
     {
         if ($dossier->status === DossierStatus::PAID || $dossier->status === DossierStatus::COMPLETED) {
             return redirect()->route('dossiers.upload', $dossier);
         }
+
+        // --- LOG JURIDIQUE : CONSENTEMENT ---
+        $dossier->logs()->create([
+            'action_type' => 'legal_consent',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'details' => "Acceptation CGU/CGV + Renoncement rétractation (Case cochée avant paiement)."
+        ]);
 
         $session = $stripe->checkout->sessions->create([
             'line_items' => [[
@@ -38,7 +46,7 @@ class StripeController extends Controller
             'cancel_url' => route('dossiers.upload', $dossier),
         ]);
 
-        // CORRECTION : On utilise TA colonne
+        
         $dossier->update(['stripe_payment_id' => $session->id]);
 
         return Inertia::location($session->url);

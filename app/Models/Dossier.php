@@ -82,4 +82,9 @@ class Dossier extends Model
     {
         return $this->status === DossierStatus::COMPLETED && !$this->isExpired();
     }
+
+    public function logs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DossierLog::class);
+    }
 }
