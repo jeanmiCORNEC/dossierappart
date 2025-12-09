@@ -16,6 +16,7 @@
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
         "spatie/pdf-to-image": "^1.2",
+        "stripe/stripe-php": "^19.0",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

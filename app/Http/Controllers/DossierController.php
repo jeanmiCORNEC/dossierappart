@@ -105,4 +105,39 @@ class DossierController extends Controller
         // Pas de redirection, Inertia gère le onSuccess côté front pour afficher l'écran final
         return redirect()->back()->with('success', 'Validation enregistrée.');
     }
+    /**
+     * Télécharger le dossier final sécurisé
+     */
+    public function download(Request $request, Dossier $dossier)
+    {
+        // DEBUG : On arrête tout et on affiche les infos
+        // Si tu ne vois pas cet écran noir, c'est que la route web.php est mauvaise.
+        
+        // 1. Vérif Token
+        if ($request->query('token') !== $dossier->download_token) {
+            dd("ERREUR TOKEN : Reçu [{$request->query('token')}] vs Attendu [{$dossier->download_token}]");
+        }
+
+        // 2. Vérif Statut
+        if ($dossier->status !== DossierStatus::COMPLETED) {
+            dd("ERREUR STATUT : Le dossier est [{$dossier->status}] au lieu de COMPLETED");
+        }
+
+        // 3. Vérif Chemin BDD
+        if (!$dossier->final_pdf_path) {
+            dd("ERREUR BDD : Le chemin du PDF final est NULL en base de données.");
+        }
+
+        // 4. Vérif Fichier Physique
+        if (!file_exists($dossier->final_pdf_path)) {
+            dd("ERREUR FICHIER : Le fichier n'existe pas sur le disque.", [
+                'Chemin cherché' => $dossier->final_pdf_path,
+                'Dossier existe ?' => is_dir(dirname($dossier->final_pdf_path)),
+                'Permissions' => substr(sprintf('%o', fileperms(dirname($dossier->final_pdf_path))), -4)
+            ]);
+        }
+
+        // Si tout est OK, on lance le téléchargement
+        return response()->download($dossier->final_pdf_path, 'Mon_Dossier_Location_Securise.pdf');
+    }
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { AlertTriangle, Mail, ShieldAlert } from 'lucide-vue-next';
 
 interface Props {
   show: boolean;
@@ -22,7 +23,7 @@ const handleConfirm = () => {
 };
 
 const handleClose = () => {
-  acceptedCGU.value = false;
+  // On ne reset pas forcément acceptedCGU pour éviter de frustrer l'user s'il réouvre
   emit('close');
 };
 </script>
@@ -42,88 +43,102 @@ const handleClose = () => {
         class="fixed inset-0 z-50 overflow-y-auto"
         @click.self="handleClose"
       >
-        <div class="flex min-h-full items-center justify-center p-4">
-          <!-- Backdrop -->
-          <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <!-- Backdrop flou -->
+        <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity"></div>
 
+        <div class="flex min-h-full items-center justify-center p-4">
           <!-- Modal -->
-          <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div class="flex items-center justify-between">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                Finaliser votre dossier
+          <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-6 transform transition-all border border-gray-100 dark:border-gray-700">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                Dernière étape avant sécurisation
               </h3>
               <button
                 type="button"
                 @click="handleClose"
-                class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
               >
+                <span class="sr-only">Fermer</span>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
+            <!-- Contenu d'avertissement -->
             <div class="space-y-4 text-sm text-gray-600 dark:text-gray-300">
-              <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <div class="flex gap-3">
-                  <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <div>
-                    <p class="font-medium text-yellow-800 dark:text-yellow-400">
-                      Attention – Adresse email
-                    </p>
-                    <p class="mt-1 text-yellow-700 dark:text-yellow-300">
-                      L'email utilisé lors du paiement Stripe sera celui où vous recevrez le lien de téléchargement de votre dossier. Vérifiez-le attentivement.
-                    </p>
-                  </div>
+              
+              <!-- Alerte Email -->
+              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex gap-3">
+                <Mail class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p class="font-bold text-blue-800 dark:text-blue-300">
+                    Adresse email de réception
+                  </p>
+                  <p class="mt-1 text-blue-700 dark:text-blue-200">
+                    Le lien de téléchargement sera envoyé à l'adresse que vous saisirez sur la page de paiement <strong>Stripe</strong>. Vérifiez-la bien !
+                  </p>
                 </div>
               </div>
 
-              <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <div class="flex gap-3">
-                  <svg class="w-5 h-5 text-red-600 dark:text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p class="font-medium text-red-800 dark:text-red-400">
-                      Aucun remboursement
-                    </p>
-                    <p class="mt-1 text-red-700 dark:text-red-300">
-                      Une fois le paiement effectué et le dossier généré, aucun remboursement ne sera possible. Assurez-vous d'avoir téléchargé tous les documents nécessaires.
-                    </p>
-                  </div>
+              <!-- Alerte Rétractation (Juridique) -->
+              <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex gap-3">
+                <AlertTriangle class="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p class="font-bold text-amber-800 dark:text-amber-400">
+                    Renoncement au remboursement
+                  </p>
+                  <p class="mt-1 text-amber-700 dark:text-amber-300 text-xs">
+                    Le service étant exécuté immédiatement après paiement (génération du fichier), vous ne pourrez pas exercer votre droit de rétractation une fois le dossier livré.
+                  </p>
                 </div>
               </div>
 
-              <label class="flex items-start gap-3 cursor-pointer">
-                <input
-                  v-model="acceptedCGU"
-                  type="checkbox"
-                  class="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <span class="text-gray-700 dark:text-gray-300">
-                  J'ai lu et j'accepte les 
-                  <a href="#" class="text-indigo-600 dark:text-indigo-400 hover:underline">Conditions Générales d'Utilisation</a>
-                </span>
-              </label>
+              <!-- Checkbox Legale (Obligatoire) -->
+              <div class="pt-2">
+                <label class="flex items-start gap-3 cursor-pointer group">
+                  <div class="relative flex items-center">
+                    <input
+                      v-model="acceptedCGU"
+                      type="checkbox"
+                      class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500 transition-all cursor-pointer"
+                    />
+                  </div>
+                  <span class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                    Je renonce expressément à mon droit de rétractation de 14 jours pour bénéficier du service immédiatement. J'accepte les 
+                    <a href="/cgu" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">CGU</a>
+                    et la 
+                    <a href="/confidentialite" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Politique de confidentialité</a>.
+                  </span>
+                </label>
+              </div>
             </div>
 
-            <div class="flex gap-3 pt-4">
+            <!-- Footer Actions -->
+            <div class="flex gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
               <button
                 type="button"
                 @click="handleClose"
-                class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
               >
                 Annuler
               </button>
+              
               <button
                 type="button"
                 @click="handleConfirm"
                 :disabled="!acceptedCGU || !hasAllDocuments"
-                class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                :class="[
+                  'flex-1 px-4 py-3 text-white rounded-lg font-bold shadow-lg transition-all transform active:scale-[0.98] flex justify-center items-center gap-2',
+                  acceptedCGU 
+                    ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30' 
+                    : 'bg-gray-400 cursor-not-allowed opacity-70'
+                ]"
               >
-                Payer et finaliser (4,99€)
+                <span>Payer et Sécuriser (4,90€)</span>
+                <ShieldAlert v-if="!acceptedCGU" class="w-4 h-4" />
               </button>
             </div>
           </div>
