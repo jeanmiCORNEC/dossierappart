@@ -5,8 +5,7 @@ namespace App\Services;
 use App\Models\Document;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Illuminate\Support\Facades\Process;
 
 class PdfSanitizerService
 {
@@ -56,8 +55,7 @@ class PdfSanitizerService
                     $this->optimizedWatermarkPath
                 ];
 
-                $process = new Process($cmd);
-                $process->run();
+                Process::run($cmd);
                 Log::info("Watermark optimisé généré : {$this->optimizedWatermarkPath}");
             } catch (\Exception $e) {
                 Log::error("Impossible de générer le watermark optimisé: " . $e->getMessage());
@@ -87,7 +85,7 @@ class PdfSanitizerService
         return $outputPath;
     }
 
-    protected function processImage(string $input, string $output, string $type): void
+    protected function processImage(string $input, string $output, string $type, bool $allowUpscale = true): void
     {
         $isIdentity = str_contains($type, 'identite');
         $tempA4 = $this->tempPath . '/norm_' . uniqid() . '.jpg';
@@ -103,14 +101,16 @@ class PdfSanitizerService
                 $cmd .= "-fuzz 10% -trim +repage ";
                 $cmd .= "-resize 1200 ";
             } else {
-                // Documents : Trim AGRESSIF pour virer le blanc sale du scanner
-                // -fuzz 25% : Tolérance élevée pour considérer le gris clair comme du blanc à supprimer
-                $cmd .= "-fuzz 25% -trim +repage ";
+                // Documents : PAS DE TRIM pour les documents pleine page (A4, Justificatifs)
+                // On garde la page entière du scan pour éviter de rogner les marges blanches d'un papier officiel
+                // $cmd .= "-fuzz 25% -trim +repage ";
 
                 // Fit Page (Marge sécurité)
-                $w = $this->a4Width - 100;
-                $h = $this->a4Height - 100;
-                $cmd .= "-resize " . escapeshellarg("{$w}x{$h}>") . " ";
+                $w = $this->a4Width - 50; // Moins de marge pour profiter de tout l'espace
+                $h = $this->a4Height - 50;
+
+                $resizeFlag = $allowUpscale ? '' : '>'; // > = don't upscale
+                $cmd .= "-resize " . escapeshellarg("{$w}x{$h}{$resizeFlag}") . " ";
             }
 
             // CANEVAS A4 BLANC (Le "White Container")
@@ -175,7 +175,8 @@ class PdfSanitizerService
 
             foreach ($files as $pagePath) {
                 $pageOutputPdf = str_replace('.jpg', '_w.pdf', $pagePath);
-                $this->processImage($pagePath, $pageOutputPdf, $type);
+                // Pour les PDFs, on respecte la taille physique (pas d'upscale)
+                $this->processImage($pagePath, $pageOutputPdf, $type, false);
                 $processedPdfs[] = $pageOutputPdf;
             }
 
@@ -195,13 +196,11 @@ class PdfSanitizerService
 
     protected function executeCommand(string $command): void
     {
-        $process = Process::fromShellCommandline($command);
-        $process->setTimeout(300);
-        $process->run();
+        $result = Process::timeout(300)->run($command);
 
-        if (!$process->isSuccessful()) {
-            Log::error("CMD FAILED: " . $process->getErrorOutput());
-            throw new ProcessFailedException($process);
+        if ($result->failed()) {
+            Log::error("CMD FAILED: " . $result->errorOutput());
+            throw new \Exception("Command failed: " . $result->errorOutput());
         }
     }
 }
