@@ -47,6 +47,45 @@ class CleanExpiredDossiers extends Command
             }
         }
 
-        $this->info("Nettoyage terminé : {$count} dossiers supprimés.");
+        $this->info("Nettoyage DB terminé : {$count} dossiers supprimés.");
+
+        // --- 3. Nettoyage des dossiers "Orphelins" sur le disque ---
+        // Cas où le dossier existe physiquement mais plus en base (ou jamais créé complètement)
+        $dossierPath = storage_path('app/private/dossiers');
+        $orphansDeleted = 0;
+
+        if (file_exists($dossierPath)) {
+            $directories = glob($dossierPath . '/*', GLOB_ONLYDIR);
+
+            foreach ($directories as $dir) {
+                $folderName = basename($dir); // C'est l'UUID normalement
+
+                // Si ce n'est pas un UUID valide (simple check de longueur/format basic), on ignore par sécurité
+                // UUID v4 = 36 caractères. On peut être souple ou strict.
+                if (strlen($folderName) < 30) continue;
+
+                // Check si existe en base
+                // On utilise exists() qui est très léger
+                $existsInDb = Dossier::where('id', $folderName)->exists();
+
+                if (!$existsInDb) {
+                    // C'est un orphelin. 
+                    // Sécurité : Est-il vieux de plus de 24h ? (Pour ne pas supprimer un dossier en cours de création)
+                    $lastModified = filemtime($dir);
+                    $ageInHours = (time() - $lastModified) / 3600;
+
+                    if ($ageInHours > 24) {
+                        try {
+                            Storage::disk('local')->deleteDirectory("dossiers/{$folderName}");
+                            $orphansDeleted++;
+                        } catch (\Exception $e) {
+                            Log::error("Erreur suppression orphelin {$folderName} : " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->info("Nettoyage Orphelins terminé : {$orphansDeleted} dossiers supprimés.");
     }
 }
