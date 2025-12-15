@@ -33,7 +33,7 @@ class CreateDossierTest extends TestCase
 
         // 2. Faire la requête POST pour créer un dossier
         $response = $this->post('/dossiers', [
-            'pays_id' => $france->id,
+            'pays_code' => $france->code,
         ]);
 
         // 3. Vérifier qu'un dossier a été créé
@@ -55,11 +55,11 @@ class CreateDossierTest extends TestCase
     public function test_cannot_create_dossier_with_invalid_country(): void
     {
         $response = $this->post('/dossiers', [
-            'pays_id' => 999999, // ID inexistant
+            'pays_code' => 'INVALID', // Code inexistant
         ]);
 
-        $response->assertSessionHasErrors('pays_id');
-        $response->assertSessionHasErrors('pays_id');
+        $response->assertSessionHasErrors('pays_code');
+        $response->assertSessionHasErrors('pays_code');
         // $this->assertDatabaseCount('dossiers', 0); // On ne peut pas vérifier 0 si la base n'est pas vide
         // On pourrait vérifier que le count n'a pas bougé, mais c'est déjà implicite si ça fail la validation
 

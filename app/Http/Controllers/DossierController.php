@@ -10,14 +10,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+use App\Models\Pays;
+
 class DossierController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate(['pays_id' => ['required', 'exists:pays,id']]);
+        // On accepte 'pays_code' (ex: 'FR') venant de la landing page
+        $validated = $request->validate([
+            'pays_code' => ['required', 'exists:pays,code'],
+        ]);
+
+        $pays = Pays::where('code', $validated['pays_code'])->firstOrFail();
 
         $dossier = Dossier::create([
-            'pays_id' => $validated['pays_id'],
+            'pays_id' => $pays->id,
             'status' => DossierStatus::DRAFT,
         ]);
 
@@ -31,6 +38,7 @@ class DossierController extends Controller
             'dossier' => $dossier,
             'documents' => $dossier->documents,
             'documentTypes' => $dossier->pays->typesDocumentsPays()->orderBy('ordre')->get(),
+            'pays' => Pays::orderBy('nom')->get(),
         ]);
     }
 
@@ -90,20 +98,17 @@ class DossierController extends Controller
         ]);
     }
 
-    public function submit(Dossier $dossier): RedirectResponse
+    public function updatePays(Request $request, Dossier $dossier): RedirectResponse
     {
-        if ($dossier->documents()->count() === 0) {
-            return redirect()->back()->withErrors(['error' => 'Dossier vide.']);
-        }
+        $validated = $request->validate([
+            'pays_code' => ['required', 'exists:pays,code'],
+        ]);
 
-        // Passage en statut PAYÉ
-        $dossier->update(['status' => DossierStatus::PAID]);
+        $pays = Pays::where('code', $validated['pays_code'])->firstOrFail();
 
-        // Déclenchement du traitement asynchrone
-        \App\Jobs\ProcessDossierJob::dispatch($dossier);
+        $dossier->update(['pays_id' => $pays->id]);
 
-        // Pas de redirection, Inertia gère le onSuccess côté front pour afficher l'écran final
-        return redirect()->back()->with('success', 'Validation enregistrée.');
+        return redirect()->back()->with('success', 'Pays mis à jour.');
     }
     /**
      * Télécharger le dossier final sécurisé
@@ -112,7 +117,7 @@ class DossierController extends Controller
     {
         // DEBUG : On arrête tout et on affiche les infos
         // Si tu ne vois pas cet écran noir, c'est que la route web.php est mauvaise.
-        
+
         // 1. Vérif Token
         if ($request->query('token') !== $dossier->download_token) {
             dd("ERREUR TOKEN : Reçu [{$request->query('token')}] vs Attendu [{$dossier->download_token}]");

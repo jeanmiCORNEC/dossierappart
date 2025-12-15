@@ -41,11 +41,25 @@ class PdfMergerService
                     $tplId = $pdf->importPage($i);
                     $size = $pdf->getTemplateSize($tplId);
 
-                    // Garder l'orientation originale
+                    // Standardiser en A4 tout en gardant l'orientation
                     $orientation = $size['width'] > $size['height'] ? 'L' : 'P';
 
-                    $pdf->AddPage($orientation, [$size['width'], $size['height']]);
-                    $pdf->useTemplate($tplId);
+                    $pdf->AddPage($orientation, 'A4');
+
+                    // Dimensions A4 en mm (FPDF par défaut)
+                    $fullWidth = 210;
+                    $fullHeight = 297;
+
+                    if ($orientation === 'L') {
+                        $pWidth = $fullHeight; // 297
+                        $pHeight = $fullWidth; // 210
+                    } else {
+                        $pWidth = $fullWidth;
+                        $pHeight = $fullHeight;
+                    }
+
+                    // On force le contenu à remplir la page A4 (image ou PDF source)
+                    $pdf->useTemplate($tplId, 0, 0, $pWidth, $pHeight);
                 }
 
                 Log::info("[PdfMerger] Successfully merged PDF #{$index}");
