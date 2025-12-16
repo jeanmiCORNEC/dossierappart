@@ -1,0 +1,60 @@
+services:
+  # --- APP LARAVEL ---
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        user: forge
+        uid: 1000
+    container_name: dossierappart-app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./:/var/www
+    networks:
+      - web
+      - internal
+    labels:
+      - "caddy=dossierappart.fr"
+      - "caddy.reverse_proxy={{upstreams 80}}"
+      - "caddy_2=www.dossierappart.fr"
+      - "caddy_2.redir=https://dossierappart.fr{uri}"
+    depends_on:
+      - redis
+      - db
+
+  # --- DATABASE ---
+  db:
+    image: mariadb:10.11
+    container_name: dossierappart-db
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    networks:
+      - internal
+
+  # --- REDIS ---
+  redis:
+    image: redis:alpine
+    container_name: dossierappart-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+networks:
+  web:
+    external: true
+  internal:
+
+volumes:
+  db_data:
+  redis_data:
