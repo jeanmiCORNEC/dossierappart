@@ -91,58 +91,65 @@ class PdfSanitizerService
         $tempA4 = $this->tempPath . '/norm_' . uniqid() . '.jpg';
 
         try {
-            // --- ÉTAPE 1 : NORMALISATION & CENTRAGE ---
-
+            // --- ÉTAPE 1 : NORMALISATION ---
+            // (Identique à ton code actuel)
             $cmd = "{$this->binary} " . escapeshellarg($input) . " -auto-orient ";
 
             if ($isIdentity) {
-                // Identité : Largeur fixe 1200px.
-                // On ne trim pas trop fort pour ne pas couper la carte si elle est claire sur fond clair
-                $cmd .= "-fuzz 10% -trim +repage ";
-                $cmd .= "-resize 1200 ";
+                $cmd .= "-fuzz 10% -trim +repage -resize 1200 ";
             } else {
-                // Documents : PAS DE TRIM pour les documents pleine page (A4, Justificatifs)
-                // On garde la page entière du scan pour éviter de rogner les marges blanches d'un papier officiel
-                // $cmd .= "-fuzz 25% -trim +repage ";
-
-                // Fit Page (Marge sécurité)
-                $w = $this->a4Width - 50; // Moins de marge pour profiter de tout l'espace
+                $w = $this->a4Width - 50;
                 $h = $this->a4Height - 50;
-
-                $resizeFlag = $allowUpscale ? '' : '>'; // > = don't upscale
+                $resizeFlag = $allowUpscale ? '' : '>';
                 $cmd .= "-resize " . escapeshellarg("{$w}x{$h}{$resizeFlag}") . " ";
             }
 
-            // CANEVAS A4 BLANC (Le "White Container")
-            // On pose l'image redimensionnée/trimmée AU CENTRE d'un fond blanc A4
             $cmd .= "-gravity center -background white ";
             $cmd .= "-extent {$this->a4Width}x{$this->a4Height} ";
-
-            // Qualité et Densité pour l'impression
             $cmd .= "-quality 90 -density 200 ";
             $cmd .= escapeshellarg($tempA4);
 
             $this->executeCommand($cmd);
 
-            // --- ÉTAPE 2 : WATERMARKING (Tuilage & Fusion) ---
-
-            // On utilise le watermark optimisé s'il existe, sinon le master
+            // --- ÉTAPE 2 : WATERMARKING (CORRIGÉ POUR SERVEUR) ---
+            
             $watermarkToUse = file_exists($this->optimizedWatermarkPath)
                 ? $this->optimizedWatermarkPath
                 : $this->masterWatermarkPath;
 
             if (file_exists($watermarkToUse)) {
-                // Commande Composite :
-                // -dissolve 12 : Opacité demandée
-                // -tile : Répète le motif sur toute la surface
-                $cmdWatermark = "composite -dissolve 12 -tile " .
-                    escapeshellarg($watermarkToUse) . " " .
-                    escapeshellarg($tempA4) . " " .
-                    escapeshellarg($output);
-                $this->executeCommand($cmdWatermark);
+                // ⚠️ CORRECTION MAJEURE ICI :
+                // On utilise 'convert' (via l'alias magick) au lieu de 'composite'
+                // Syntaxe : convert BASE WATERMARK -compose dissolve -define compose:args=12 -composite OUTPUT
+                
+                // Pour le tuilage (-tile), c'est plus complexe en v6 pure.
+                // On va utiliser une approche plus robuste : on crée une image tuilée de la taille de la page d'abord.
+                
+                $tiledWatermark = $this->tempPath . '/tiled_' . uniqid() . '.png';
+                
+                // 1. Créer le calque de filigrane tuilé (taille A4)
+                // "convert -size WxH tile:watermark.png tiled.png"
+                $cmdTile = "{$this->binary} -size {$this->a4Width}x{$this->a4Height} tile:" . 
+                           escapeshellarg($watermarkToUse) . " " . 
+                           escapeshellarg($tiledWatermark);
+                $this->executeCommand($cmdTile);
+
+                // 2. Fusionner (Composition)
+                $cmdMerge = "{$this->binary} " . 
+                            escapeshellarg($tempA4) . " " . 
+                            escapeshellarg($tiledWatermark) . " " . 
+                            "-compose dissolve -define compose:args=12 -composite " . 
+                            escapeshellarg($output);
+                
+                $this->executeCommand($cmdMerge);
+                
+                // Nettoyage du calque temporaire
+                if (file_exists($tiledWatermark)) unlink($tiledWatermark);
+
             } else {
                 Log::warning("Aucun watermark trouvé (Master ou Opt).");
-                $this->executeCommand("{$this->binary} " . escapeshellarg($tempA4) . " " . escapeshellarg($output));
+                // Copie simple si pas de watermark
+                copy($tempA4, $output);
             }
         } finally {
             if (file_exists($tempA4)) unlink($tempA4);
