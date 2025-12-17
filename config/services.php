@@ -42,5 +42,12 @@ return [
             'tolerance' => 300,
         ],
     ],
+    'google' => [
+        'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
+    ],
+
+    'microsoft' => [
+        'clarity_id' => env('MICROSOFT_CLARITY_ID'),
+    ],
 
 ];
