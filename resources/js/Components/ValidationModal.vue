@@ -16,8 +16,35 @@ const emit = defineEmits<{
 
 const acceptedCGU = ref(false);
 
+function gtag_report_conversion(url?: string) {
+  const callback = () => {
+    if (typeof url !== 'undefined' && url) {
+      window.location.href = url;
+    }
+  };
+
+  const gtagFn = (window as Window & typeof globalThis & { gtag?: unknown }).gtag;
+
+  if (typeof gtagFn === 'function') {
+    (gtagFn as (command: string, eventName: string, params: Record<string, unknown>) => void)(
+      'event',
+      'conversion',
+      {
+        send_to: 'AW-16516112250/zkltCPO9jIscEPq-v8M9',
+        transaction_id: '',
+        event_callback: callback,
+      }
+    );
+  } else {
+    callback();
+  }
+
+  return false;
+}
+
 const handleConfirm = () => {
   if (acceptedCGU.value) {
+    gtag_report_conversion();
     emit('confirm');
   }
 };
