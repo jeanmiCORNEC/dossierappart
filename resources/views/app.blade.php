@@ -14,13 +14,16 @@
 
     <!-- GOOGLE ANALYTICS (GA4) -->
     @if(config('services.google.analytics_id'))
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '{{ config('services.google.analytics_id') }}');
-        </script>
+        <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-16516112250">
+</script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-16516112250');
+</script>
     @endif
 
     <!-- MICROSOFT CLARITY -->
