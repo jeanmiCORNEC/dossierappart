@@ -16,14 +16,19 @@ const emit = defineEmits<{
 
 const acceptedCGU = ref(false);
 
-function gtag_report_conversion(url?: string) {
-  const callback = () => {
-    if (typeof url !== 'undefined' && url) {
-      window.location.href = url;
+function trackConversion(onComplete: () => void) {
+  let done = false;
+  const finish = () => {
+    if (!done) {
+      done = true;
+      onComplete();
     }
   };
 
   const gtagFn = (window as Window & typeof globalThis & { gtag?: unknown }).gtag;
+  const timeoutId = window.setTimeout(() => {
+    finish();
+  }, 500);
 
   if (typeof gtagFn === 'function') {
     (gtagFn as (command: string, eventName: string, params: Record<string, unknown>) => void)(
@@ -32,20 +37,23 @@ function gtag_report_conversion(url?: string) {
       {
         send_to: 'AW-16516112250/zkltCPO9jIscEPq-v8M9',
         transaction_id: '',
-        event_callback: callback,
+        event_callback: () => {
+          window.clearTimeout(timeoutId);
+          finish();
+        },
       }
     );
   } else {
-    callback();
+    window.clearTimeout(timeoutId);
+    finish();
   }
-
-  return false;
 }
 
 const handleConfirm = () => {
   if (acceptedCGU.value) {
-    gtag_report_conversion();
-    emit('confirm');
+    trackConversion(() => {
+      emit('confirm');
+    });
   }
 };
 
